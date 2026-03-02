@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal SAP - Facturas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Portal de Facturas - Entregas</h1>
+            <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="content-box filter-section">
+            <div class="section-header">
+                <h2>Búsqueda de Facturas</h2>
+                <button id="clearFiltersBtn" class="btn btn-secondary btn-small">Limpiar Filtros</button>
+            </div>
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label for="filterInvoiceNum">Número de Factura</label>
+                    <input type="text" id="filterInvoiceNum" placeholder="Buscar por número">
+                </div>
+                <div class="form-group">
+                    <label for="filterInvoiceType">Tipo de Factura</label>
+                    <select id="filterInvoiceType">
+                        <option value="">Todos los tipos</option>
+                        <option value="invoice">Factura</option>
+                        <option value="credit">Nota de Crédito</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterArticle">Artículo</label>
+                    <input type="text" id="filterArticle" placeholder="Buscar por artículo">
+                </div>
+                <div class="form-group">
+                    <label for="filterDateFrom">Fecha Desde</label>
+                    <input type="date" id="filterDateFrom">
+                </div>
+                <div class="form-group">
+                    <label for="filterDateTo">Fecha Hasta</label>
+                    <input type="date" id="filterDateTo">
+                </div>
+                <div class="form-group">
+                    <label for="filterSeries">Serie</label>
+                    <input type="text" id="filterSeries" placeholder="Serie">
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button id="applyFiltersBtn" class="btn btn-primary">Aplicar Filtros</button>
+            </div>
+        </div>
+
+        <!-- Invoice List View -->
+        <div id="listView" class="content-box">
+            <!-- Navigation Tabs -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="invoices">Facturas</button>
+                <button class="tab-btn" data-tab="deliveries">Entregas</button>
+            </div>
+            
+            <div class="section-header">
+                <h2 id="listViewTitle">Listado de Facturas</h2>
+                <p class="user-info">Cliente: <span id="cardCodeDisplay"></span></p>
+            </div>
+            
+            <!-- Invoices Tab Content -->
+            <div id="invoicesTab" class="tab-content active">
+                <div id="loadingList" class="loading">Cargando facturas...</div>
+                <div id="errorList" class="error-message"></div>
+                <div id="invoicesList" class="table-container"></div>
+            </div>
+            
+            <!-- Deliveries Tab Content -->
+            <div id="deliveriesTab" class="tab-content">
+                <div id="loadingDeliveries" class="loading">Cargando entregas...</div>
+                <div id="errorDeliveries" class="error-message"></div>
+                <div id="deliveriesList" class="table-container"></div>
+            </div>
+        </div>
+
+        <!-- Delivery Preview View -->
+        <div id="deliveryPreviewView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Vista Previa de la Entrega</h2>
+                <button id="backToListBtn" class="btn btn-secondary">Volver al Listado</button>
+            </div>
+            
+            <!-- Preview Navigation -->
+            <div class="preview-navigation">
+                <button class="preview-nav-btn active" data-view="details">Detalles</button>
+                <button class="preview-nav-btn" data-view="quantity">Cantidad</button>
+            </div>
+            
+            <div id="loadingDeliveryPreview" class="loading">Cargando vista previa...</div>
+            <div id="errorDeliveryPreview" class="error-message"></div>
+            
+            <!-- Details View -->
+            <div id="deliveryDetailsView" class="preview-content active">
+                <div id="deliveryPreviewDetails"></div>
+            </div>
+            
+            <!-- Quantity View -->
+            <div id="deliveryQuantityView" class="preview-content">
+                <div id="deliveryPreviewQuantity"></div>
+            </div>
+        </div>
+
+        <!-- Invoice Detail View -->
+        <div id="detailView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Detalle de Factura</h2>
+                <div>
+                    <button id="viewPDFBtn" class="btn btn-success btn-small" style="margin-right: 8px;">Ver PDF</button>
+                    <button id="viewXMLBtn" class="btn btn-success btn-small" style="margin-right: 8px;">Ver XML</button>
+                    <button id="backBtn" class="btn btn-secondary">Volver al Listado</button>
+                </div>
+            </div>
+            <div id="loadingDetail" class="loading">Cargando detalle...</div>
+            <div id="errorDetail" class="error-message"></div>
+            <div id="invoiceDetail"></div>
+        </div>
+
+        <!-- PDF/XML Viewer Modal -->
+        <div id="documentViewerModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="documentViewerTitle">Visor de Documento</h2>
+                    <button id="closeModalBtn" class="btn btn-secondary btn-small">Cerrar</button>
+                </div>
+                <div id="documentViewerContent" class="document-viewer">
+                    <!-- PDF/XML content will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="env.js"></script>
+    <script src="api.js"></script>
+    <script src="facturas.js"></script>
+</body>
+</html>

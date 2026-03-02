@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal SAP - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h1>Portal SAP</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="userType">Tipo de Usuario</label>
+                    <select id="userType" required>
+                        <option value="cliente">Cliente</option>
+                        <option value="empleado">Empleado</option>
+                    </select>
+                </div>
+                <div class="form-group" id="cardCodeGroup">
+                    <label for="cardCode">Código de Cliente (CardCode)</label>
+                    <input type="text" id="cardCode" placeholder="Ej: C40000" required>
+                </div>
+                <div class="form-group" id="employeeEmailGroup" style="display: none;">
+                    <label for="employeeEmail">Email de Empleado</label>
+                    <input type="email" id="employeeEmail" placeholder="empleado@empresa.com">
+                </div>
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="env.js"></script>
+    <script src="api.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const userTypeSelect = document.getElementById('userType');
+        const cardCodeGroup = document.getElementById('cardCodeGroup');
+        const employeeEmailGroup = document.getElementById('employeeEmailGroup');
+        const cardCodeInput = document.getElementById('cardCode');
+        const employeeEmailInput = document.getElementById('employeeEmail');
+        const loginError = document.getElementById('loginError');
+
+        // Toggle fields based on user type
+        userTypeSelect.addEventListener('change', function() {
+            if (this.value === 'cliente') {
+                cardCodeGroup.style.display = 'block';
+                employeeEmailGroup.style.display = 'none';
+                cardCodeInput.required = true;
+                employeeEmailInput.required = false;
+            } else {
+                cardCodeGroup.style.display = 'none';
+                employeeEmailGroup.style.display = 'block';
+                cardCodeInput.required = false;
+                employeeEmailInput.required = true;
+            }
+        });
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            loginError.textContent = '';
+
+            try {
+                // Login to SAP Service Layer
+                const sessionData = await SAPService.login();
+                
+                // Store user info
+                const userType = userTypeSelect.value;
+                sessionStorage.setItem('userType', userType);
+                
+                if (userType === 'cliente') {
+                    sessionStorage.setItem('cardCode', cardCodeInput.value);
+                    window.location.href = 'facturas.html';
+                } else {
+                    sessionStorage.setItem('employeeEmail', employeeEmailInput.value);
+                    window.location.href = 'solicitudes.html';
+                }
+            } catch (error) {
+                loginError.textContent = 'Error al iniciar sesión: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

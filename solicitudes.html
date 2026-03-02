@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal SAP - Solicitudes de Compra</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Solicitudes de Compra</h1>
+            <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+        </div>
+
+        <!-- Menu View -->
+        <div id="menuView" class="content-box">
+            <div class="section-header">
+                <h2>Opciones</h2>
+                <p class="user-info">Usuario: <span id="emailDisplay"></span></p>
+            </div>
+            <div class="button-grid">
+                <button id="createBtn" class="btn btn-primary">Crear Solicitud</button>
+                <button id="viewBtn" class="btn btn-primary">Consultar Solicitudes</button>
+                <button id="updateBtn" class="btn btn-primary">Modificar Solicitud</button>
+                <button id="deleteBtn" class="btn btn-danger">Eliminar Solicitud</button>
+            </div>
+        </div>
+
+        <!-- Create View -->
+        <div id="createView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Crear Solicitud de Compra</h2>
+                <button id="backToMenuFromCreate" class="btn btn-secondary">Volver al Menú</button>
+            </div>
+            <div id="errorCreate" class="error-message"></div>
+            
+            <div class="form-section">
+                <h3>Información del Encabezado</h3>
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="requesterName">Nombre de Solicitante</label>
+                        <input type="text" id="requesterName" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="branch">Sucursal</label>
+                        <input type="text" id="branch" placeholder="Ej: Principal">
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Departamento</label>
+                        <input type="text" id="department" placeholder="Ej: General">
+                    </div>
+                    <div class="form-group">
+                        <label for="requiredDate">Fecha Necesaria</label>
+                        <input type="date" id="requiredDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Válido Hasta</label>
+                        <input type="date" id="dueDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="owner">Propietario</label>
+                        <input type="text" id="owner" placeholder="Propietario">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="comments">Comentarios</label>
+                    <textarea id="comments" rows="3" placeholder="Comentarios de la solicitud"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Agregar Artículos (Contenido)</h3>
+                <div id="loadingItems" class="loading">Cargando artículos...</div>
+                <div id="itemSelector" style="display: none;">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="itemSelect">Artículo</label>
+                            <select id="itemSelect">
+                                <option value="">-- Seleccione un artículo --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemQuantity">Cantidad Necesaria</label>
+                            <input type="number" id="itemQuantity" min="1" value="1" step="0.001">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemVendor">Proveedor (código)</label>
+                            <input type="text" id="itemVendor" placeholder="Ej: P0577">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemRequiredDate">Fecha Necesaria</label>
+                            <input type="date" id="itemRequiredDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemPrice">Precio Info</label>
+                            <input type="number" id="itemPrice" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDiscount">% de Descuento</label>
+                            <input type="number" id="itemDiscount" min="0" max="100" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemTaxCode">Indicador de Impuestos</label>
+                            <input type="text" id="itemTaxCode" placeholder="Ej: IVAC16">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemUoM">Unidad de Medida</label>
+                            <input type="text" id="itemUoM" placeholder="Ej: MXP">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemFreeText">Texto Libre</label>
+                        <input type="text" id="itemFreeText" placeholder="Texto libre o descripción adicional">
+                    </div>
+                    <button id="addItemBtn" class="btn btn-primary">Agregar Artículo</button>
+                </div>
+            </div>
+
+            <div id="selectedItemsContainer" style="display: none;">
+                <h3>Artículos Seleccionados</h3>
+                <div id="selectedItemsList" class="table-container"></div>
+                <button id="submitCreateBtn" class="btn btn-success">Crear Solicitud</button>
+            </div>
+        </div>
+
+        <!-- View List -->
+        <div id="viewListView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Consultar Solicitudes</h2>
+                <button id="backToMenuFromView" class="btn btn-secondary">Volver al Menú</button>
+            </div>
+            <div id="loadingViewList" class="loading">Cargando solicitudes...</div>
+            <div id="errorViewList" class="error-message"></div>
+            <div id="requestsList" class="table-container"></div>
+        </div>
+
+        <!-- View Detail -->
+        <div id="viewDetailView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Detalle de Solicitud</h2>
+                <button id="backToList" class="btn btn-secondary">Volver al Listado</button>
+            </div>
+            <div id="loadingViewDetail" class="loading">Cargando detalle...</div>
+            <div id="errorViewDetail" class="error-message"></div>
+            <div id="requestDetail"></div>
+        </div>
+
+        <!-- Update View -->
+        <div id="updateView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Modificar Solicitud</h2>
+                <button id="backToMenuFromUpdate" class="btn btn-secondary">Volver al Menú</button>
+            </div>
+            <div id="loadingUpdate" class="loading">Cargando solicitudes...</div>
+            <div id="errorUpdate" class="error-message"></div>
+            <div id="updateRequestsList" class="table-container"></div>
+        </div>
+
+        <!-- Update Detail -->
+        <div id="updateDetailView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Modificar Líneas de Solicitud</h2>
+                <button id="backToUpdateList" class="btn btn-secondary">Volver al Listado</button>
+            </div>
+            <div id="errorUpdateDetail" class="error-message"></div>
+            <div id="updateDetailContent"></div>
+        </div>
+
+        <!-- Delete View -->
+        <div id="deleteView" class="content-box" style="display: none;">
+            <div class="section-header">
+                <h2>Eliminar Solicitud</h2>
+                <button id="backToMenuFromDelete" class="btn btn-secondary">Volver al Menú</button>
+            </div>
+            <div id="loadingDelete" class="loading">Cargando solicitudes...</div>
+            <div id="errorDelete" class="error-message"></div>
+            <div id="deleteRequestsList" class="table-container"></div>
+        </div>
+    </div>
+
+    <script src="env.js"></script>
+    <script src="api.js"></script>
+    <script src="solicitudes.js"></script>
+</body>
+</html>
