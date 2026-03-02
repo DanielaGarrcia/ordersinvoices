@@ -1,9 +1,8 @@
 // SAP Service Layer API Service
 const SAPService = {
     // MODO DESARROLLO - Cambia a false para usar el servidor real
-    DEVELOPMENT_MODE: true,
+    DEVELOPMENT_MODE: false,
     
-    // Credenciales cargadas desde env.js (NO incluidas en Git)
     // Asegúrate de crear env.js basado en env.example.js
     baseURL: window.ENV?.SAP_BASE_URL || '',
     credentials: {
