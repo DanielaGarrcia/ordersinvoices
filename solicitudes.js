@@ -22,6 +22,8 @@ emailDisplay.textContent = employeeEmail;
 
 // Global variables
 let availableItems = [];
+let availableVendors = [];
+let availableDepartments = [];
 let selectedItems = [];
 let currentRequestForUpdate = null;
 
@@ -76,6 +78,7 @@ async function showCreateView() {
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     
+    document.getElementById('docDate').valueAsDate = today;
     document.getElementById('requiredDate').valueAsDate = tomorrow;
     document.getElementById('dueDate').valueAsDate = nextMonth;
     document.getElementById('itemRequiredDate').valueAsDate = tomorrow;
@@ -83,15 +86,14 @@ async function showCreateView() {
     // Set default values
     document.getElementById('requesterName').value = '';
     document.getElementById('branch').value = 'Principal';
-    document.getElementById('department').value = 'General';
-    document.getElementById('owner').value = '';
     document.getElementById('comments').value = '';
+    document.getElementById('docCurrency').value = 'MXN';
     
     document.getElementById('errorCreate').textContent = '';
     document.getElementById('selectedItemsContainer').style.display = 'none';
     
-    // Load items
-    await loadItems();
+    // Load items, vendors and departments
+    await Promise.all([loadItems(), loadVendors(), loadDepartments()]);
 }
 
 async function showViewListView() {
@@ -144,6 +146,50 @@ async function loadItems() {
     }
 }
 
+async function loadVendors() {
+    const vendorSelect = document.getElementById('itemVendor');
+    
+    try {
+        const data = await SAPService.getVendors();
+        availableVendors = data.value || [];
+        
+        if (availableVendors.length === 0) {
+            console.warn('No se encontraron proveedores disponibles');
+            return;
+        }
+        
+        vendorSelect.innerHTML = '<option value="">-- Seleccione un proveedor --</option>' +
+            availableVendors.map(vendor => 
+                `<option value="${vendor.CardCode}">${vendor.CardCode} - ${vendor.CardName}</option>`
+            ).join('');
+    } catch (error) {
+        console.error('Error al cargar proveedores:', error);
+        // No mostrar error al usuario, el campo quedará con opción por defecto
+    }
+}
+
+async function loadDepartments() {
+    const departmentSelect = document.getElementById('department');
+    
+    try {
+        const data = await SAPService.getDepartments();
+        availableDepartments = data.value || [];
+        
+        if (availableDepartments.length === 0) {
+            console.warn('No se encontraron departamentos disponibles');
+            return;
+        }
+        
+        departmentSelect.innerHTML = '<option value="">-- Seleccione un departamento --</option>' +
+            availableDepartments.map(dept => 
+                `<option value="${dept.Code}">${dept.Name}</option>`
+            ).join('');
+    } catch (error) {
+        console.error('Error al cargar departamentos:', error);
+        // No mostrar error al usuario, el campo quedará con opción por defecto
+    }
+}
+
 function addItemToList() {
     const itemSelect = document.getElementById('itemSelect');
     const itemQuantity = document.getElementById('itemQuantity');
@@ -176,16 +222,33 @@ function addItemToList() {
     const discount = parseFloat(itemDiscount.value) || 0;
     const lineTotal = price * quantity * (1 - discount / 100);
     
+    // Debug: Verificar valores capturados
+    console.log('Valores del formulario:', {
+        itemCode,
+        itemName: item?.ItemName,
+        quantity,
+        vendorCode: itemVendor.value,
+        price
+    });
+    
+    // Asegurar que siempre haya una fecha requerida
+    const lineRequiredDate = itemRequiredDate.value || document.getElementById('requiredDate').value;
+    
+    if (!lineRequiredDate) {
+        errorCreate.textContent = 'Debe seleccionar una fecha necesaria para el artículo';
+        return;
+    }
+    
     selectedItems.push({
         ItemCode: itemCode,
         ItemName: item.ItemName,
         Quantity: quantity,
         VendorCode: itemVendor.value || '',
-        RequiredDate: itemRequiredDate.value || document.getElementById('requiredDate').value,
+        RequiredDate: lineRequiredDate,
         UnitPrice: price,
         DiscountPercent: discount,
-        TaxCode: itemTaxCode.value || '',
-        UoMCode: itemUoM.value || 'MXP',
+        TaxCode: itemTaxCode.value.trim() || '',
+        UoMCode: itemUoM.value.trim() || '',
         FreeText: itemFreeText.value || '',
         LineTotal: lineTotal
     });
@@ -296,17 +359,30 @@ async function submitCreateRequest() {
     const requesterName = document.getElementById('requesterName').value;
     const branch = document.getElementById('branch').value;
     const department = document.getElementById('department').value;
+    const docDate = document.getElementById('docDate').value;
     const requiredDate = document.getElementById('requiredDate').value;
     const dueDate = document.getElementById('dueDate').value;
-    const owner = document.getElementById('owner').value;
     const comments = document.getElementById('comments').value;
+    const docCurrency = document.getElementById('docCurrency').value;
+    
+    // Debug: Verificar departamento capturado
+    console.log('Departamento seleccionado:', department);
+    
+    // Validaciones
+    if (!docDate) {
+        errorCreate.textContent = 'Debe seleccionar la fecha del documento';
+        return;
+    }
     
     if (!requiredDate) {
         errorCreate.textContent = 'Debe seleccionar una fecha necesaria';
         return;
     }
     
+    // No validar RequiredDate en items - SAP lo toma del encabezado
+    
     const requestData = {
+        DocDate: docDate,
         RequriedDate: requiredDate,
         DocDueDate: dueDate || requiredDate,
         RequesterName: requesterName,
@@ -314,26 +390,56 @@ async function submitCreateRequest() {
         RequesterDepartment: department,
         Comments: comments || 'Solicitud generada vía Service Layer',
         RequesterEmail: employeeEmail,
-        Owner: owner || employeeEmail,
-        DocumentLines: selectedItems.map((item, index) => ({
-            LineNum: index,
-            ItemCode: item.ItemCode,
-            ItemDescription: item.ItemName,
-            Quantity: item.Quantity,
-            RequiredDate: item.RequiredDate,
-            VendorCode: item.VendorCode,
-            UnitPrice: item.UnitPrice,
-            DiscountPercent: item.DiscountPercent,
-            TaxCode: item.TaxCode,
-            UoMCode: item.UoMCode,
-            FreeText: item.FreeText,
-            LineTotal: item.LineTotal
-        }))
+        DocumentLines: selectedItems.map((item, index) => {
+            const line = {
+                ItemCode: item.ItemCode,
+                Quantity: item.Quantity,
+                RequiredDate: item.RequiredDate
+            };
+            
+            // Agregar campos opcionales SOLO si tienen valor válido y no vacío
+            if (item.UnitPrice && item.UnitPrice > 0) {
+                line.UnitPrice = item.UnitPrice;
+            }
+            if (item.DiscountPercent && item.DiscountPercent > 0) {
+                line.DiscountPercent = item.DiscountPercent;
+            }
+            if (item.VendorCode && item.VendorCode.trim()) {
+                line.LineVendor = item.VendorCode.trim();
+            }
+            // TaxCode: Solo agregar si es válido (evitar 'w16' u otros inválidos)
+            if (item.TaxCode && item.TaxCode.trim() && item.TaxCode.trim().length > 0) {
+                const trimmedTax = item.TaxCode.trim();
+                // Solo agregar códigos que parezcan válidos (no incluir 'w' minúscula que es error de tipeo)
+                if (trimmedTax.toUpperCase() === trimmedTax || trimmedTax === 'IVAC16' || trimmedTax === 'IVA') {
+                    line.TaxCode = trimmedTax;
+                }
+            }
+            if (item.UoMCode && item.UoMCode.trim()) {
+                line.UoMCode = item.UoMCode.trim();
+            }
+            if (item.FreeText && item.FreeText.trim()) {
+                line.FreeText = item.FreeText.trim();
+            }
+            
+            return line;
+        })
     };
+    
+    // Solo agregar DocCurrency si es moneda extranjera (no MXN)
+    if (docCurrency && docCurrency !== 'MXN') {
+        requestData.DocCurrency = docCurrency;
+    }
+    
+    // Debug: Ver qué se está enviando
+    console.log('Request a SAP:', JSON.stringify(requestData, null, 2));
     
     try {
         document.getElementById('submitCreateBtn').disabled = true;
         const result = await SAPService.createPurchaseRequest(requestData);
+        
+        // Debug: Ver qué devuelve SAP
+        console.log('Response de SAP:', JSON.stringify(result, null, 2));
         
         alert(`Solicitud creada exitosamente. Número de documento: ${result.DocNum}`);
         showMenuView();
@@ -514,10 +620,6 @@ function displayRequestDetail(request, container) {
                 <div class="detail-row">
                     <div class="detail-label">Válido Hasta:</div>
                     <div class="detail-value">${formatDate(request.DocDueDate || request.RequriedDate)}</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">Propietario:</div>
-                    <div class="detail-value">${request.Owner || ''}</div>
                 </div>
             </div>
             <div class="detail-row">

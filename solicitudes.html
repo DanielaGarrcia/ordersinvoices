@@ -48,7 +48,9 @@
                     </div>
                     <div class="form-group">
                         <label for="department">Departamento</label>
-                        <input type="text" id="department" placeholder="Ej: General">
+                        <select id="department">
+                            <option value="">-- Seleccione un departamento --</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="requiredDate">Fecha Necesaria</label>
@@ -59,9 +61,21 @@
                         <input type="date" id="dueDate">
                     </div>
                     <div class="form-group">
-                        <label for="owner">Propietario</label>
-                        <input type="text" id="owner" placeholder="Propietario">
+                        <label for="docDate">Fecha del Documento</label>
+                        <input type="date" id="docDate" required>
+                        <small style="display:block; color:#5A7FA0; margin-top:4px;">Fecha de contabilización</small>
                     </div>
+                    <div class="form-group">
+                        <label for="docCurrency">Moneda *</label>
+                        <select id="docCurrency" required>
+                            <option value="MXN" selected>MXN - Peso Mexicano (Moneda Local)</option>
+                            <option value="USD">USD - Dólar Estadounidense</option>
+                            <option value="EUR">EUR - Euro</option>
+                        </select>
+                        <small style="display:block; color:#5A7FA0; margin-top:4px;">Para USD/EUR, configure el tipo de cambio en SAP primero</small>
+                    </div>
+                </div>
+                <div>
                 </div>
                 <div class="form-group">
                     <label for="comments">Comentarios</label>
@@ -85,8 +99,10 @@
                             <input type="number" id="itemQuantity" min="1" value="1" step="0.001">
                         </div>
                         <div class="form-group">
-                            <label for="itemVendor">Proveedor (código)</label>
-                            <input type="text" id="itemVendor" placeholder="Ej: P0577">
+                            <label for="itemVendor">Proveedor</label>
+                            <select id="itemVendor">
+                                <option value="">-- Seleccione un proveedor --</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="itemRequiredDate">Fecha Necesaria</label>
@@ -101,12 +117,14 @@
                             <input type="number" id="itemDiscount" min="0" max="100" step="0.01" value="0">
                         </div>
                         <div class="form-group">
-                            <label for="itemTaxCode">Indicador de Impuestos</label>
+                            <label for="itemTaxCode">Indicador de Impuestos (Opcional)</label>
                             <input type="text" id="itemTaxCode" placeholder="Ej: IVAC16">
+                            <small style="display:block; color:#5A7FA0; margin-top:4px;">Dejar vacío para usar el impuesto del artículo. Códigos comunes: IVAC16, IVA, EXE</small>
                         </div>
                         <div class="form-group">
-                            <label for="itemUoM">Unidad de Medida</label>
-                            <input type="text" id="itemUoM" placeholder="Ej: MXP">
+                            <label for="itemUoM">Unidad de Medida (Opcional)</label>
+                            <input type="text" id="itemUoM" placeholder="Ej: PZ, KG">
+                            <small style="display:block; color:#5A7FA0; margin-top:4px;">Dejar vacío para usar unidad por defecto</small>
                         </div>
                     </div>
                     <div class="form-group">

@@ -72,6 +72,28 @@
                 <div id="loadingList" class="loading">Cargando facturas...</div>
                 <div id="errorList" class="error-message"></div>
                 <div id="invoicesList" class="table-container"></div>
+                
+                <!-- Pagination Controls for Invoices -->
+                <div class="pagination-controls" id="invoicesPaginationControls" style="display: none;">
+                    <div class="rows-per-page">
+                        <label for="invoicesRowsPerPage">Filas por página:</label>
+                        <select id="invoicesRowsPerPage">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                        </select>
+                    </div>
+                    <div class="pagination-info">
+                        <span id="invoicesPaginationInfo">Mostrando 0-0 de 0</span>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button id="invoicesFirstPage" class="btn btn-secondary btn-small">Primera</button>
+                        <button id="invoicesPrevPage" class="btn btn-secondary btn-small">Anterior</button>
+                        <span id="invoicesPageNumbers" class="page-numbers"></span>
+                        <button id="invoicesNextPage" class="btn btn-secondary btn-small">Siguiente</button>
+                        <button id="invoicesLastPage" class="btn btn-secondary btn-small">Última</button>
+                    </div>
+                </div>
             </div>
             
             <!-- Deliveries Tab Content -->
@@ -79,6 +101,28 @@
                 <div id="loadingDeliveries" class="loading">Cargando entregas...</div>
                 <div id="errorDeliveries" class="error-message"></div>
                 <div id="deliveriesList" class="table-container"></div>
+                
+                <!-- Pagination Controls for Deliveries -->
+                <div class="pagination-controls" id="deliveriesPaginationControls" style="display: none;">
+                    <div class="rows-per-page">
+                        <label for="deliveriesRowsPerPage">Filas por página:</label>
+                        <select id="deliveriesRowsPerPage">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                        </select>
+                    </div>
+                    <div class="pagination-info">
+                        <span id="deliveriesPaginationInfo">Mostrando 0-0 de 0</span>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button id="deliveriesFirstPage" class="btn btn-secondary btn-small">Primera</button>
+                        <button id="deliveriesPrevPage" class="btn btn-secondary btn-small">Anterior</button>
+                        <span id="deliveriesPageNumbers" class="page-numbers"></span>
+                        <button id="deliveriesNextPage" class="btn btn-secondary btn-small">Siguiente</button>
+                        <button id="deliveriesLastPage" class="btn btn-secondary btn-small">Última</button>
+                    </div>
+                </div>
             </div>
         </div>
 

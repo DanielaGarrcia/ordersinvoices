@@ -68,6 +68,19 @@ let allInvoices = [];
 let allDeliveries = [];
 let currentInvoiceDocNum = null;
 
+// Pagination state
+let invoicesPagination = {
+    currentPage: 1,
+    rowsPerPage: 10,
+    filteredData: []
+};
+
+let deliveriesPagination = {
+    currentPage: 1,
+    rowsPerPage: 10,
+    filteredData: []
+};
+
 // Event Listeners
 logoutBtn.addEventListener('click', () => {
     SAPService.logout();
@@ -100,6 +113,72 @@ previewNavBtns.forEach(btn => {
 // Filter buttons
 applyFiltersBtn.addEventListener('click', applyFilters);
 clearFiltersBtn.addEventListener('click', clearFilters);
+
+// Pagination event listeners for Invoices
+document.getElementById('invoicesRowsPerPage').addEventListener('change', (e) => {
+    invoicesPagination.rowsPerPage = parseInt(e.target.value);
+    invoicesPagination.currentPage = 1;
+    displayInvoicesList(invoicesPagination.filteredData);
+});
+
+document.getElementById('invoicesFirstPage').addEventListener('click', () => {
+    invoicesPagination.currentPage = 1;
+    displayInvoicesList(invoicesPagination.filteredData);
+});
+
+document.getElementById('invoicesPrevPage').addEventListener('click', () => {
+    if (invoicesPagination.currentPage > 1) {
+        invoicesPagination.currentPage--;
+        displayInvoicesList(invoicesPagination.filteredData);
+    }
+});
+
+document.getElementById('invoicesNextPage').addEventListener('click', () => {
+    const totalPages = Math.ceil(invoicesPagination.filteredData.length / invoicesPagination.rowsPerPage);
+    if (invoicesPagination.currentPage < totalPages) {
+        invoicesPagination.currentPage++;
+        displayInvoicesList(invoicesPagination.filteredData);
+    }
+});
+
+document.getElementById('invoicesLastPage').addEventListener('click', () => {
+    const totalPages = Math.ceil(invoicesPagination.filteredData.length / invoicesPagination.rowsPerPage);
+    invoicesPagination.currentPage = totalPages;
+    displayInvoicesList(invoicesPagination.filteredData);
+});
+
+// Pagination event listeners for Deliveries
+document.getElementById('deliveriesRowsPerPage').addEventListener('change', (e) => {
+    deliveriesPagination.rowsPerPage = parseInt(e.target.value);
+    deliveriesPagination.currentPage = 1;
+    displayDeliveriesList(deliveriesPagination.filteredData);
+});
+
+document.getElementById('deliveriesFirstPage').addEventListener('click', () => {
+    deliveriesPagination.currentPage = 1;
+    displayDeliveriesList(deliveriesPagination.filteredData);
+});
+
+document.getElementById('deliveriesPrevPage').addEventListener('click', () => {
+    if (deliveriesPagination.currentPage > 1) {
+        deliveriesPagination.currentPage--;
+        displayDeliveriesList(deliveriesPagination.filteredData);
+    }
+});
+
+document.getElementById('deliveriesNextPage').addEventListener('click', () => {
+    const totalPages = Math.ceil(deliveriesPagination.filteredData.length / deliveriesPagination.rowsPerPage);
+    if (deliveriesPagination.currentPage < totalPages) {
+        deliveriesPagination.currentPage++;
+        displayDeliveriesList(deliveriesPagination.filteredData);
+    }
+});
+
+document.getElementById('deliveriesLastPage').addEventListener('click', () => {
+    const totalPages = Math.ceil(deliveriesPagination.filteredData.length / deliveriesPagination.rowsPerPage);
+    deliveriesPagination.currentPage = totalPages;
+    displayDeliveriesList(deliveriesPagination.filteredData);
+});
 
 // PDF/XML viewers
 viewPDFBtn.addEventListener('click', () => viewDocument('pdf'));
@@ -189,11 +268,25 @@ async function loadInvoices() {
 }
 
 function displayInvoicesList(invoices) {
+    // Clear the existing content
+    invoicesList.innerHTML = '';
+    
     if (!invoices || invoices.length === 0) {
         invoicesList.innerHTML = '<p style="text-align: center; padding: 20px; color: #5A7FA0;">No se encontraron facturas</p>';
+        document.getElementById('invoicesPaginationControls').style.display = 'none';
         return;
     }
 
+    // Store filtered data
+    invoicesPagination.filteredData = invoices;
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(invoices.length / invoicesPagination.rowsPerPage);
+    const startIndex = (invoicesPagination.currentPage - 1) * invoicesPagination.rowsPerPage;
+    const endIndex = Math.min(startIndex + invoicesPagination.rowsPerPage, invoices.length);
+    const paginatedInvoices = invoices.slice(startIndex, endIndex);
+
+    // Create table with paginated data
     const table = document.createElement('table');
     table.innerHTML = `
         <thead>
@@ -207,7 +300,7 @@ function displayInvoicesList(invoices) {
             </tr>
         </thead>
         <tbody>
-            ${invoices.map(invoice => `
+            ${paginatedInvoices.map(invoice => `
                 <tr>
                     <td>${invoice.DocNum}</td>
                     <td>${formatDate(invoice.DocDate)}</td>
@@ -225,6 +318,9 @@ function displayInvoicesList(invoices) {
     `;
     
     invoicesList.appendChild(table);
+    
+    // Update pagination controls
+    updateInvoicesPaginationControls(invoices.length, startIndex, endIndex, totalPages);
 }
 
 async function viewInvoiceDetail(docNum) {
@@ -341,11 +437,25 @@ async function loadDeliveries() {
 }
 
 function displayDeliveriesList(deliveries) {
+    // Clear the existing content
+    deliveriesList.innerHTML = '';
+    
     if (!deliveries || deliveries.length === 0) {
         deliveriesList.innerHTML = '<p style="text-align: center; padding: 20px; color: #5A7FA0;">No se encontraron entregas</p>';
+        document.getElementById('deliveriesPaginationControls').style.display = 'none';
         return;
     }
 
+    // Store filtered data
+    deliveriesPagination.filteredData = deliveries;
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(deliveries.length / deliveriesPagination.rowsPerPage);
+    const startIndex = (deliveriesPagination.currentPage - 1) * deliveriesPagination.rowsPerPage;
+    const endIndex = Math.min(startIndex + deliveriesPagination.rowsPerPage, deliveries.length);
+    const paginatedDeliveries = deliveries.slice(startIndex, endIndex);
+
+    // Create table with paginated data
     const table = document.createElement('table');
     table.innerHTML = `
         <thead>
@@ -358,7 +468,7 @@ function displayDeliveriesList(deliveries) {
             </tr>
         </thead>
         <tbody>
-            ${deliveries.map(delivery => `
+            ${paginatedDeliveries.map(delivery => `
                 <tr>
                     <td>${delivery.DocNum}</td>
                     <td>${formatDate(delivery.DocDate)}</td>
@@ -375,6 +485,9 @@ function displayDeliveriesList(deliveries) {
     `;
     
     deliveriesList.appendChild(table);
+    
+    // Update pagination controls
+    updateDeliveriesPaginationControls(deliveries.length, startIndex, endIndex, totalPages);
 }
 
 async function viewDeliveryPreview(docNum) {
@@ -558,6 +671,8 @@ function applyFilters() {
         }, 5000);
     }
 
+    // Reset to first page when applying filters
+    invoicesPagination.currentPage = 1;
     displayInvoicesList(filteredInvoices);
 }
 
@@ -569,6 +684,8 @@ function clearFilters() {
     filterDateTo.value = '';
     filterSeries.value = '';
     
+    // Reset pagination to first page
+    invoicesPagination.currentPage = 1;
     displayInvoicesList(allInvoices);
 }
 
@@ -636,3 +753,91 @@ function showDeliveryPreviewView() {
     listView.style.display = 'none';
     detailView.style.display = 'none';
     deliveryPreviewView.style.display = 'block';
+}
+
+// Pagination Helper Functions
+function updateInvoicesPaginationControls(totalItems, startIndex, endIndex, totalPages) {
+    const paginationControls = document.getElementById('invoicesPaginationControls');
+    const paginationInfo = document.getElementById('invoicesPaginationInfo');
+    const pageNumbers = document.getElementById('invoicesPageNumbers');
+    const firstPageBtn = document.getElementById('invoicesFirstPage');
+    const prevPageBtn = document.getElementById('invoicesPrevPage');
+    const nextPageBtn = document.getElementById('invoicesNextPage');
+    const lastPageBtn = document.getElementById('invoicesLastPage');
+    
+    // Show pagination controls
+    paginationControls.style.display = 'flex';
+    
+    // Update pagination info
+    paginationInfo.textContent = `Mostrando ${startIndex + 1}-${endIndex} de ${totalItems}`;
+    
+    // Update page numbers
+    pageNumbers.innerHTML = '';
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, invoicesPagination.currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = 'page-number-btn' + (i === invoicesPagination.currentPage ? ' active' : '');
+        pageBtn.addEventListener('click', () => {
+            invoicesPagination.currentPage = i;
+            displayInvoicesList(invoicesPagination.filteredData);
+        });
+        pageNumbers.appendChild(pageBtn);
+    }
+    
+    // Enable/disable navigation buttons
+    firstPageBtn.disabled = invoicesPagination.currentPage === 1;
+    prevPageBtn.disabled = invoicesPagination.currentPage === 1;
+    nextPageBtn.disabled = invoicesPagination.currentPage === totalPages;
+    lastPageBtn.disabled = invoicesPagination.currentPage === totalPages;
+}
+
+function updateDeliveriesPaginationControls(totalItems, startIndex, endIndex, totalPages) {
+    const paginationControls = document.getElementById('deliveriesPaginationControls');
+    const paginationInfo = document.getElementById('deliveriesPaginationInfo');
+    const pageNumbers = document.getElementById('deliveriesPageNumbers');
+    const firstPageBtn = document.getElementById('deliveriesFirstPage');
+    const prevPageBtn = document.getElementById('deliveriesPrevPage');
+    const nextPageBtn = document.getElementById('deliveriesNextPage');
+    const lastPageBtn = document.getElementById('deliveriesLastPage');
+    
+    // Show pagination controls
+    paginationControls.style.display = 'flex';
+    
+    // Update pagination info
+    paginationInfo.textContent = `Mostrando ${startIndex + 1}-${endIndex} de ${totalItems}`;
+    
+    // Update page numbers
+    pageNumbers.innerHTML = '';
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, deliveriesPagination.currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = 'page-number-btn' + (i === deliveriesPagination.currentPage ? ' active' : '');
+        pageBtn.addEventListener('click', () => {
+            deliveriesPagination.currentPage = i;
+            displayDeliveriesList(deliveriesPagination.filteredData);
+        });
+        pageNumbers.appendChild(pageBtn);
+    }
+    
+    // Enable/disable navigation buttons
+    firstPageBtn.disabled = deliveriesPagination.currentPage === 1;
+    prevPageBtn.disabled = deliveriesPagination.currentPage === 1;
+    nextPageBtn.disabled = deliveriesPagination.currentPage === totalPages;
+    lastPageBtn.disabled = deliveriesPagination.currentPage === totalPages;
+}
